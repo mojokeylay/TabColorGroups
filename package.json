@@ -1,0 +1,220 @@
+{
+  "name": "tab-color-groups",
+  "displayName": "Tab Color Groups",
+  "description": "Group and color-code VS Code editor tabs, similar to Microsoft Edge tab groups.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.137.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tabColorGroups",
+          "title": "Tab Groups",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "tabColorGroups": [
+        {
+          "id": "tabColorGroups.view",
+          "name": "Tab Groups",
+          "contextualTitle": "Tab Groups"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "tabColorGroups.createGroup",
+        "title": "Create New Group",
+        "category": "Tab Groups",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tabColorGroups.addActiveTabToGroup",
+        "title": "Add Tab to Group…",
+        "category": "Tab Groups"
+      },
+      {
+        "command": "tabColorGroups.removeTabFromGroup",
+        "title": "Remove Tab from Group",
+        "category": "Tab Groups",
+        "icon": "$(close)"
+      },
+      {
+        "command": "tabColorGroups.renameGroup",
+        "title": "Rename Group",
+        "category": "Tab Groups",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "tabColorGroups.changeGroupColor",
+        "title": "Change Group Color",
+        "category": "Tab Groups",
+        "icon": "$(symbol-color)"
+      },
+      {
+        "command": "tabColorGroups.deleteGroup",
+        "title": "Delete Group",
+        "category": "Tab Groups",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "tabColorGroups.closeGroup",
+        "title": "Close All Tabs in Group",
+        "category": "Tab Groups",
+        "icon": "$(close-all)"
+      },
+      {
+        "command": "tabColorGroups.collapseGroup",
+        "title": "Collapse Group",
+        "category": "Tab Groups",
+        "icon": "$(chevron-right)"
+      },
+      {
+        "command": "tabColorGroups.expandGroup",
+        "title": "Expand Group",
+        "category": "Tab Groups",
+        "icon": "$(chevron-down)"
+      },
+      {
+        "command": "tabColorGroups.organizeTabs",
+        "title": "Organize Tabs Now",
+        "category": "Tab Groups",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "tabColorGroups.refresh",
+        "title": "Refresh",
+        "category": "Tab Groups",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "tabColorGroups.disableGitDecorations",
+        "title": "Disable Git Decorations (Avoid Color Conflicts)",
+        "category": "Tab Groups",
+        "icon": "$(git-commit)"
+      },
+      {
+        "command": "tabColorGroups.enableGitDecorations",
+        "title": "Enable Git Decorations",
+        "category": "Tab Groups",
+        "icon": "$(circle-slash)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "tabColorGroups.createGroup",
+          "when": "view == tabColorGroups.view",
+          "group": "navigation@1"
+        },
+        {
+          "command": "tabColorGroups.organizeTabs",
+          "when": "view == tabColorGroups.view",
+          "group": "navigation@2"
+        },
+        {
+          "command": "tabColorGroups.refresh",
+          "when": "view == tabColorGroups.view",
+          "group": "navigation@3"
+        },
+        {
+          "command": "tabColorGroups.disableGitDecorations",
+          "when": "view == tabColorGroups.view && tabColorGroups.gitDecorationsEnabled",
+          "group": "navigation@4"
+        },
+        {
+          "command": "tabColorGroups.enableGitDecorations",
+          "when": "view == tabColorGroups.view && !tabColorGroups.gitDecorationsEnabled",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "tabColorGroups.collapseGroup",
+          "when": "view == tabColorGroups.view && viewItem == group-expanded",
+          "group": "inline@1"
+        },
+        {
+          "command": "tabColorGroups.expandGroup",
+          "when": "view == tabColorGroups.view && viewItem == group-collapsed",
+          "group": "inline@1"
+        },
+        {
+          "command": "tabColorGroups.renameGroup",
+          "when": "view == tabColorGroups.view && viewItem =~ /^group-/",
+          "group": "1_modify@1"
+        },
+        {
+          "command": "tabColorGroups.changeGroupColor",
+          "when": "view == tabColorGroups.view && viewItem =~ /^group-/",
+          "group": "1_modify@2"
+        },
+        {
+          "command": "tabColorGroups.closeGroup",
+          "when": "view == tabColorGroups.view && viewItem =~ /^group-/",
+          "group": "2_close@1"
+        },
+        {
+          "command": "tabColorGroups.deleteGroup",
+          "when": "view == tabColorGroups.view && viewItem =~ /^group-/",
+          "group": "2_close@2"
+        },
+        {
+          "command": "tabColorGroups.removeTabFromGroup",
+          "when": "view == tabColorGroups.view && viewItem == tab",
+          "group": "inline@1"
+        },
+        {
+          "command": "tabColorGroups.addActiveTabToGroup",
+          "when": "view == tabColorGroups.view && viewItem == ungrouped-tab",
+          "group": "inline@1"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "tabColorGroups.addActiveTabToGroup",
+          "group": "9_tabColorGroups@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.137.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "typescript-eslint": "^8.61.1",
+    "eslint": "^10.5.0",
+    "esbuild": "^0.28.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^6.0.3",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  }
+}
