@@ -2,7 +2,7 @@
 
 A Visual Studio Code extension to easily organize and color-code your editor tabs into custom groups for cleaner workspace navigation.
 
-![Preview](images/preview.png)
+![Preview](resources/preview.png)
 
 ## Features
 
