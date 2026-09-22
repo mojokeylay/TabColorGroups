@@ -3,8 +3,14 @@
   "displayName": "Tab Color Groups",
   "description": "Group and color-code VS Code editor tabs, similar to Microsoft Edge tab groups.",
   "version": "0.0.1",
+  "publisher": "mojokeylay",
+  "icon": "resources/icon.svg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mojokeylay/TabColorGroups"
+  },
   "engines": {
-    "vscode": "^1.137.0"
+    "vscode": "^1.95.0"
   },
   "categories": [
     "Other"
@@ -202,7 +208,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.137.0",
+    "@types/vscode": "^1.95.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
     "typescript-eslint": "^8.61.1",
