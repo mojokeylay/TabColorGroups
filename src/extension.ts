@@ -226,6 +226,23 @@ export function activate(context: vscode.ExtensionContext) {
 			await manager.renameGroup(group.id, name);
 		}),
 
+		vscode.commands.registerCommand('tabColorGroups.moveGroupUp', async (node?: GroupNode) => {
+			const group = await resolveGroup(manager, node, 'Move which group up?');
+			if (group) {
+				await manager.moveGroupUp(group.id);
+				await organizeTabs(manager);
+			}
+		}),
+
+		vscode.commands.registerCommand('tabColorGroups.moveGroupDown', async (node?: GroupNode) => {
+			const group = await resolveGroup(manager, node, 'Move which group down?');
+			if (group) {
+				await manager.moveGroupDown(group.id);
+				await organizeTabs(manager);
+			}
+		}),
+
+
 		vscode.commands.registerCommand('tabColorGroups.changeGroupColor', async (node?: GroupNode) => {
 			const group = await resolveGroup(manager, node, 'Change the color of which group?');
 			if (!group) {

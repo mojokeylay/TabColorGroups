@@ -92,6 +92,52 @@ export class GroupManager {
 		await this.persist();
 	}
 
+	async moveGroupUp(id: string): Promise<void> {
+		const index = this.groups.findIndex(g => g.id === id);
+		if (index > 0) {
+			const temp = this.groups[index];
+			this.groups[index] = this.groups[index - 1];
+			this.groups[index - 1] = temp;
+			await this.persist();
+		}
+	}
+
+	async moveGroupDown(id: string): Promise<void> {
+		const index = this.groups.findIndex(g => g.id === id);
+		if (index !== -1 && index < this.groups.length - 1) {
+			const temp = this.groups[index];
+			this.groups[index] = this.groups[index + 1];
+			this.groups[index + 1] = temp;
+			await this.persist();
+		}
+	}
+
+	async reorderGroups(sourceGroupId: string, targetGroupId: string): Promise<void> {
+		if (sourceGroupId === targetGroupId) {
+			return;
+		}
+		const sourceIndex = this.groups.findIndex(g => g.id === sourceGroupId);
+		if (sourceIndex === -1) {
+			return;
+		}
+		
+		// Remove the source group from its current position
+		const [sourceGroup] = this.groups.splice(sourceIndex, 1);
+		
+		// Find the new target index (it may have shifted after the splice)
+		const targetIndex = this.groups.findIndex(g => g.id === targetGroupId);
+		
+		if (targetIndex === -1) {
+			// Fallback: push to the end if target isn't found
+			this.groups.push(sourceGroup);
+		} else {
+			// Insert the source group exactly where the target was
+			this.groups.splice(targetIndex, 0, sourceGroup);
+		}
+		
+		await this.persist();
+	}
+
 	async addTabToGroup(key: string, groupId: string, beforeKey?: string): Promise<void> {
 		for (const group of this.groups) {
 			const existingIndex = group.memberKeys.indexOf(key);
