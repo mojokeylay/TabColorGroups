@@ -28,7 +28,10 @@ export interface TabRef {
 
 export type TreeNode = GroupNode | TabNode | UngroupedNode | UngroupedTabNode;
 
+// Use explicit custom MIME types to prevent VS Code from overwriting our drag data
 const DND_MIME_TYPE = 'application/vnd.code.tree.tabcolorgroupsview';
+const DND_TAB_MIME_TYPE = 'tabcolorgroups-tabs';
+const DND_GROUP_MIME_TYPE = 'tabcolorgroups-groups';
 
 function flattenTabs(): Map<string, vscode.Tab> {
 	const map = new Map<string, vscode.Tab>();
@@ -66,8 +69,8 @@ export class TabGroupsTreeDataProvider implements vscode.TreeDataProvider<TreeNo
 	private readonly _onDidChangeTreeData = new vscode.EventEmitter<TreeNode | undefined | void>();
 	readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
-	readonly dropMimeTypes = [DND_MIME_TYPE];
-	readonly dragMimeTypes = [DND_MIME_TYPE];
+	readonly dropMimeTypes = [DND_MIME_TYPE, DND_TAB_MIME_TYPE, DND_GROUP_MIME_TYPE];
+	readonly dragMimeTypes = [DND_MIME_TYPE, DND_TAB_MIME_TYPE, DND_GROUP_MIME_TYPE];
 
 	constructor(private readonly manager: GroupManager) {
 		manager.onDidChange(() => this._onDidChangeTreeData.fire());
@@ -119,25 +122,75 @@ export class TabGroupsTreeDataProvider implements vscode.TreeDataProvider<TreeNo
 		}
 	}
 
-	// Dragging tabs (grouped or ungrouped) within the tree view
+	// Dragging tabs (grouped or ungrouped) and Groups within the tree view
 	handleDrag(source: readonly TreeNode[], dataTransfer: vscode.DataTransfer): void {
-		const keys = source
+		const tabKeys = source
 			.filter((node): node is TabNode | UngroupedTabNode => node.type === 'tab' || node.type === 'ungrouped-tab')
 			.map(node => node.key);
-		if (keys.length > 0) {
-			dataTransfer.set(DND_MIME_TYPE, new vscode.DataTransferItem(keys));
+		
+		if (tabKeys.length > 0) {
+			dataTransfer.set(DND_TAB_MIME_TYPE, new vscode.DataTransferItem(tabKeys));
+		}
+
+		const groupIds = source
+			.filter((node): node is GroupNode => node.type === 'group')
+			.map(node => node.record.id);
+		
+		if (groupIds.length > 0) {
+			dataTransfer.set(DND_GROUP_MIME_TYPE, new vscode.DataTransferItem(groupIds));
 		}
 	}
 
-	// Drop tabs in a group or ungrouped section
+	// Drop tabs or groups
 	async handleDrop(target: TreeNode | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
-		const transferItem = dataTransfer.get(DND_MIME_TYPE);
-		if (!transferItem || !target) {
+		if (!target) {
 			return;
 		}
-		const keys: string[] = transferItem.value;
+
+		// --- Handle Group Reordering ---
+		const groupTransfer = dataTransfer.get(DND_GROUP_MIME_TYPE);
+		if (groupTransfer && Array.isArray(groupTransfer.value) && groupTransfer.value.length > 0) {
+			let targetGroupId: string | undefined;
+			
+			if (target.type === 'group') {
+				targetGroupId = target.record.id;
+			} else if (target.type === 'tab') {
+				targetGroupId = target.group.id;
+			}
+
+			if (targetGroupId) {
+				const groupIds: string[] = groupTransfer.value;
+				for (const groupId of groupIds) {
+					await this.manager.reorderGroups(groupId, targetGroupId);
+				}
+				await organizeTabs(this.manager);
+			}
+			return;
+		}
+
+		// --- Handle Tab Moving ---
+		let tabKeys: string[] = [];
+		const tabTransfer = dataTransfer.get(DND_TAB_MIME_TYPE);
+		
+		if (tabTransfer && Array.isArray(tabTransfer.value)) {
+			tabKeys = tabTransfer.value;
+		} else {
+			// Fallback: Check if VS Code dumped the tree nodes into the default MIME type
+			const defaultTransfer = dataTransfer.get(DND_MIME_TYPE);
+			if (defaultTransfer && Array.isArray(defaultTransfer.value)) {
+				tabKeys = defaultTransfer.value
+					.filter((node: any) => node.type === 'tab' || node.type === 'ungrouped-tab')
+					.map((node: any) => node.key);
+			}
+		}
+
+		if (tabKeys.length === 0) {
+			return;
+		}
+
 		let groupId: string | undefined;
 		let beforeKey: string | undefined;
+
 		if (target.type === 'group') {
 			groupId = target.record.id;
 		} else if (target.type === 'tab') {
@@ -146,7 +199,8 @@ export class TabGroupsTreeDataProvider implements vscode.TreeDataProvider<TreeNo
 		} else if (target.type !== 'ungrouped' && target.type !== 'ungrouped-tab') {
 			return;
 		}
-		for (const key of keys) {
+
+		for (const key of tabKeys) {
 			if (key === beforeKey) {
 				continue;
 			}
@@ -210,4 +264,3 @@ export class TabGroupsTreeDataProvider implements vscode.TreeDataProvider<TreeNo
 		return item;
 	}
 }
-

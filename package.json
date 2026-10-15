@@ -2,9 +2,9 @@
   "name": "tab-color-groups",
   "displayName": "Tab Color Groups",
   "description": "Group and color-code VS Code editor tabs, similar to Microsoft Edge tab groups.",
-  "version": "0.0.1",
+  "version": "1.1.0",
   "publisher": "mojokeylay",
-  "icon": "resources/icon.svg",
+  "icon": "resources/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/mojokeylay/TabColorGroups"
@@ -23,7 +23,7 @@
         {
           "id": "tabColorGroups",
           "title": "Tab Groups",
-          "icon": "resources/icon.svg"
+          "icon": "resources/icon.png"
         }
       ]
     },
@@ -113,6 +113,16 @@
         "title": "Enable Git Decorations",
         "category": "Tab Groups",
         "icon": "$(circle-slash)"
+      },
+      {
+        "command": "tabColorGroups.moveGroupUp",
+        "title": "Move Group Up",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "tabColorGroups.moveGroupDown",
+        "title": "Move Group Down",
+        "icon": "$(arrow-down)"
       }
     ],
     "menus": {
@@ -183,6 +193,16 @@
           "command": "tabColorGroups.addActiveTabToGroup",
           "when": "view == tabColorGroups.view && viewItem == ungrouped-tab",
           "group": "inline@1"
+        },
+        {
+          "command": "tabColorGroups.moveGroupUp",
+          "when": "viewItem == group-expanded || viewItem == group-collapsed",
+          "group": "inline@1"
+        },
+        {
+          "command": "tabColorGroups.moveGroupDown",
+          "when": "viewItem == group-expanded || viewItem == group-collapsed",
+          "group": "inline@2"
         }
       ],
       "editor/title/context": [
